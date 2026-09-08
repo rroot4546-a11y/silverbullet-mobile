@@ -81,7 +81,7 @@
         android:id="@+id/btnSave"
         android:layout_width="match_parent"
         android:layout_height="52dp"
-        android:text="SAVE & RELOAD"
+        android:text="SAVE &amp; RELOAD"
         android:textAllCaps="false"
         android:backgroundTint="@color/primary_blue"
         android:textColor="@android:color/white"
