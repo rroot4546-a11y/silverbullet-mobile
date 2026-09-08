@@ -8,7 +8,3 @@ class App : Application() {
         AppContextHolder.context = applicationContext
     }
 }
-
-object App {
-    val context get() = AppContextHolder.context
-}

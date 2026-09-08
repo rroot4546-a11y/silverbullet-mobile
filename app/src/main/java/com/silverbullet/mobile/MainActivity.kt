@@ -21,11 +21,10 @@ import androidx.appcompat.app.AppCompatActivity
 import com.silverbullet.mobile.databinding.ActivityMainBinding
 import com.silverbullet.mobile.net.PingResult
 import com.silverbullet.mobile.net.ServerClient
+import com.silverbullet.mobile.ui.SettingsActivity
+import okhttp3.Headers
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.RequestBody
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.ByteArrayInputStream
 import java.net.URI
 import java.util.concurrent.TimeUnit
@@ -69,6 +68,7 @@ class MainActivity : AppCompatActivity() {
             val token = Prefs.bearerToken
             if (token.isBlank()) return null
             if (!request.isForMainFrame) return null
+            if (request.method != "GET") return null
             val url = request.url.toString()
             if (!isInternalUrl(url)) return null
             val accept = request.requestHeaders["Accept"] ?: ""
@@ -158,11 +158,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupToolbar() {
-        binding.btnBack.setOnClickListener { if (binding.webView.canGoBack()) binding.webView.goBack() }
-        binding.btnForward.setOnClickListener { if (binding.webView.canGoForward()) binding.webView.goForward() }
+        binding.btnBack.setOnClickListener {
+            if (binding.webView.canGoBack()) binding.webView.goBack()
+        }
+        binding.btnForward.setOnClickListener {
+            if (binding.webView.canGoForward()) binding.webView.goForward()
+        }
         binding.btnReload.setOnClickListener { binding.webView.reload() }
         binding.btnSettings.setOnClickListener {
-            settingsLauncher.launch(Intent(this, ui.SettingsActivity::class.java))
+            settingsLauncher.launch(Intent(this, SettingsActivity::class.java))
         }
         binding.btnRetry.setOnClickListener {
             if (!Prefs.serverUrl.isBlank()) load(Prefs.serverUrl) else showSetup()
@@ -221,25 +225,30 @@ class MainActivity : AppCompatActivity() {
         binding.tvSetupStatus.text = ""
     }
 
-    private fun isInternalUrl(url: String): Boolean = try {
-        val host = URI(url).host ?: return false
-        val serverHost = URI(Prefs.serverUrl.ifBlank { loadedServer() }).host ?: return false
-        host == serverHost || host.endsWith(".$serverHost")
-    } catch (e: Exception) {
-        false
+    private fun isInternalUrl(url: String): Boolean {
+        return try {
+            val host = URI(url).host ?: return false
+            val serverHost = URI(Prefs.serverUrl.ifBlank { loadedServer() }).host ?: return false
+            host == serverHost || host.endsWith(".$serverHost")
+        } catch (e: Exception) {
+            false
+        }
     }
 
-    private fun loadedServer(): String = try {
-        URI(binding.webView.url ?: "").let { "${it.scheme}://${it.host}" }
-    } catch (e: Exception) {
-        Prefs.serverUrl
+    private fun loadedServer(): String {
+        return try {
+            URI(binding.webView.url ?: "").let { "${it.scheme}://${it.host}" }
+        } catch (e: Exception) {
+            Prefs.serverUrl
+        }
     }
 
     private fun openExternal(url: String) {
         try {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
         } catch (e: ActivityNotFoundException) {
-            android.widget.Toast.makeText(this, "No browser found", android.widget.Toast.LENGTH_SHORT).show()
+            android.widget.Toast.makeText(this, "No browser found", android.widget.Toast.LENGTH_SHORT)
+                .show()
         }
     }
 
@@ -273,30 +282,24 @@ class MainActivity : AppCompatActivity() {
                 .followSslRedirects(true)
                 .build()
 
-            val headers = request.requestHeaders.toMutableMap().apply {
+            val headerPairs = request.requestHeaders.toMutableMap().apply {
                 put("Authorization", "Bearer $token")
                 put("X-Sync-Mode", "true")
                 remove("Host")
             }
             val cookieHeader = CookieManager.getInstance().getCookie(url)
-            if (!cookieHeader.isNullOrBlank()) headers["Cookie"] = cookieHeader
+            if (!cookieHeader.isNullOrBlank()) headerPairs["Cookie"] = cookieHeader
 
-            val b = Request.Builder().url(url).headers(headers)
-            val method = request.method
-            val contentType = request.requestHeaders["Content-Type"]
-            val body: RequestBody? = request.requestBody?.let { rb ->
-                rb.readBytes().toRequestBody(contentType?.toMediaType())
-            }
-            val call = when (method) {
-                "POST" -> b.post(body ?: ByteArray(0).toRequestBody(null))
-                "PUT" -> b.put(body ?: ByteArray(0).toRequestBody(null))
-                "DELETE" -> b.delete(body)
-                "PATCH" -> b.patch(body ?: ByteArray(0).toRequestBody(null))
-                "HEAD" -> b.head()
-                else -> b.get()
-            }.build()
+            val headerBuilder = Headers.Builder()
+            for ((k, v) in headerPairs) headerBuilder.add(k, v)
 
-            http.newCall(call).execute().use { resp ->
+            val requestB = Request.Builder()
+                .url(url)
+                .headers(headerBuilder.build())
+                .get()
+                .build()
+
+            http.newCall(requestB).execute().use { resp ->
                 val setCookies = resp.headers("Set-Cookie")
                 for (c in setCookies) {
                     CookieManager.getInstance().setCookie(url, c)
@@ -312,9 +315,9 @@ class MainActivity : AppCompatActivity() {
                     bytes
                 }
 
-                val responseHeaders = resp.headers.map { it.first to it.second }
-                    .filter { (k, _) -> !k.equals("content-length", true) }
-                    .toMap()
+                val responseHeaders = resp.headers.asMap().filterKeys {
+                    !it.equals("content-length", ignoreCase = true)
+                }
 
                 WebResourceResponse(
                     mime,
