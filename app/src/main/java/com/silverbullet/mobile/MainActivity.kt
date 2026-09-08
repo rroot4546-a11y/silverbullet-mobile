@@ -348,10 +348,8 @@ class MainActivity : AppCompatActivity() {
         val out = when {
             text.contains("<head", ignoreCase = true) ->
                 text.replace(
-                    Regex("(<head[^>]*>)", RegexOption.IGNORE_CASE),
-                    "$1$script",
-                    limit = 1,
-                )
+                    Regex("<head[^>]*>", RegexOption.IGNORE_CASE),
+                ) { match -> match.value + script }
             else -> script + text
         }
         return out.toByteArray(Charsets.UTF_8)
