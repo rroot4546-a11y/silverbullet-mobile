@@ -315,8 +315,13 @@ class MainActivity : AppCompatActivity() {
                     bytes
                 }
 
-                val responseHeaders = resp.headers.asMap().filterKeys {
-                    !it.equals("content-length", ignoreCase = true)
+                val responseHeaders = mutableMapOf<String, String>()
+                for (i in 0 until resp.headers.size) {
+                    val name = resp.headers.name(i)
+                    val value = resp.headers.value(i)
+                    if (!name.equals("content-length", ignoreCase = true)) {
+                        responseHeaders[name] = value
+                    }
                 }
 
                 WebResourceResponse(
