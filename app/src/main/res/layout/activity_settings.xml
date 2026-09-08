@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/background_dark"
+    android:padding="20dp">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/surface_dark"
+        app:title="Server Settings"
+        app:titleTextColor="@color/text_light"
+        app:navigationIconTint="@color/text_light" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Server URL"
+        android:textColor="@color/text_light"
+        android:textSize="14sp"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="6dp" />
+
+    <EditText
+        android:id="@+id/etServerUrl"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:background="@drawable/edit_bg"
+        android:hint="https://notes.example.com"
+        android:textColor="@color/text_light"
+        android:textColorHint="@color/text_hint"
+        android:inputType="textUri"
+        android:paddingHorizontal="14dp"
+        android:singleLine="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Bearer token (optional)"
+        android:textColor="@color/text_light"
+        android:textSize="14sp"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="6dp" />
+
+    <EditText
+        android:id="@+id/etToken"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:background="@drawable/edit_bg"
+        android:hint="Shared token for the space"
+        android:textColor="@color/text_light"
+        android:textColorHint="@color/text_hint"
+        android:inputType="textPassword"
+        android:paddingHorizontal="14dp"
+        android:singleLine="true" />
+
+    <Button
+        android:id="@+id/btnTestConnection"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:text="TEST CONNECTION"
+        android:textAllCaps="false"
+        android:backgroundTint="@color/secondary_teal"
+        android:textColor="@android:color/white"
+        android:layout_marginTop="24dp" />
+
+    <TextView
+        android:id="@+id/tvTestResult"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/text_hint"
+        android:textSize="13sp"
+        android:gravity="center"
+        android:layout_marginTop="10dp" />
+
+    <Button
+        android:id="@+id/btnSave"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:text="SAVE & RELOAD"
+        android:textAllCaps="false"
+        android:backgroundTint="@color/primary_blue"
+        android:textColor="@android:color/white"
+        android:layout_marginTop="12dp" />
+</LinearLayout>
